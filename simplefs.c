@@ -70,7 +70,7 @@ int create_format_vdisk (char *vdiskname, unsigned int m)
              vdiskname, BLOCKSIZE, count);
     //printf ("executing command = %s\n", command);
     if (system (command) == -1) {
-         printf("error in creating file")   
+         printf("error in creating file n create_format_vdisk function")   
          return (-1);
 
     }
@@ -79,7 +79,7 @@ int create_format_vdisk (char *vdiskname, unsigned int m)
     sprintf (command, "mkfs %s", vdiskname);
     //system git to the shall
     if (system (command) == -1) {
-         printf("error in formating file")   
+         printf("error in formating file in create_format_vdisk function")   
          return (-1);
 
     }
@@ -95,6 +95,10 @@ int sfs_mount (char *vdiskname)
     // way make it ready to be used for other operations.
     // vdisk_fd is global; hence other function can use it. 
     vdisk_fd = open(vdiskname, O_RDWR); 
+    if (vdisk_fd == -1){
+        printf("error in opening file in sfs_mount function");
+        return(-1);
+    }
     return(0);
 }
 
@@ -102,8 +106,15 @@ int sfs_mount (char *vdiskname)
 // already implemented
 int sfs_umount ()
 {
-    fsync (vdisk_fd); // copy everything in memory to disk
-    close (vdisk_fd);
+    // copy everything in memory to disk
+    if (fsync (vdisk_fd) == -1){
+        printf("error in copy file in sfs_unmount function");
+        return(-1);
+    }
+    if (close (vdisk_fd) == -1){
+        printf("error in colse file in sfs_unmount function");
+        return(-1);
+    }
     return (0); 
 }
 
