@@ -45,8 +45,8 @@ int write_block (void *block, int k)
     lseek(vdisk_fd, (off_t) offset, SEEK_SET);
     n = write (vdisk_fd, block, BLOCKSIZE);
     if (n != BLOCKSIZE) {
-	printf ("write error\n");
-	return (-1);
+        printf ("write error\n");
+        return (-1);
     }
     return 0; 
 }
@@ -69,11 +69,21 @@ int create_format_vdisk (char *vdiskname, unsigned int m)
     sprintf (command, "dd if=/dev/zero of=%s bs=%d count=%d",
              vdiskname, BLOCKSIZE, count);
     //printf ("executing command = %s\n", command);
-    system (command);
+    if (system (command) == -1) {
+         printf("error in creating file")   
+         return (-1);
 
-    // now write the code to format the disk below.
-    // .. your code...
-    
+    }
+
+    //the code to format the disk below.
+    sprintf (command, "mkfs %s", vdiskname);
+    //system git to the shall
+    if (system (command) == -1) {
+         printf("error in formating file")   
+         return (-1);
+
+    }
+
     return (0); 
 }
 
