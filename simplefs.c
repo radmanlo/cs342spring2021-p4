@@ -6,8 +6,22 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "simplefs.h"
-
-
+//Superblock
+struct superBlock{
+    int numBlocks;
+    int totalVolume;
+    int blockSize;
+};
+void initSupBlock(int diskSize);
+//BitMapBlocks
+// https://stackoverflow.com/questions/44978126/structure-for-an-array-of-bits-in-c
+struct bitMapBlocks{
+unsigned char bitMap[1024];
+};
+void initBitMap();
+void setBit( int index, int value){
+    array[b/8] |= (1 << (b%8));
+}
 // Global Variables =======================================
 int vdisk_fd; // Global virtual disk file descriptor. Global within the library.
               // Will be assigned with the vsfs_mount call.
@@ -83,7 +97,10 @@ int create_format_vdisk (char *vdiskname, unsigned int m)
          return (-1);
 
     }
-
+    sfs_mount(vdiskname);
+    initSupBlock(size);
+    initBitMap();
+    sfs_umount();
     return (0); 
 }
 
@@ -154,3 +171,28 @@ int sfs_delete(char *filename)
     return (0); 
 }
 
+void initSupBlock(int diskSize){
+    struct superBlock* supBlock;
+    supBlock = (struct superBlock*) malloc (sizeof(struct superBlock));
+    supBlock->blockSize = BLOCKSIZE;
+    supBlock->numBlocks = diskSize / BLOCKSIZE;
+    supBlock->totalVolume = diskSize;
+    write_block(supBlock, 0 );
+    free(supBlock);
+};
+
+void initBitMap(){
+    struct bitMapBlocks* bBlock;
+    bBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
+    for(int i = 0 ; i < 1024; i++){
+        bBlock->blocks[i] = 1; // Free to use;
+    }
+    write_block(bBlock, 2);
+    write_block(bBlock, 3);
+    write_block(bBlock, 4);
+    for(int i = 0; i < 13; i++){
+        bBlock->blocks[i] = 0; // Not free to use;
+    }
+    write_block(bBlock, 1);
+    free(bBlock);
+};
