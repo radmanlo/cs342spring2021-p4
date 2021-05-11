@@ -6,22 +6,32 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "simplefs.h"
+
 //Superblock
 struct superBlock{
     int numBlocks;
     int totalVolume;
     int blockSize;
 };
+
+//initializing the superblock
 void initSupBlock(int diskSize);
+
 //BitMapBlocks
 // https://stackoverflow.com/questions/44978126/structure-for-an-array-of-bits-in-c
 struct bitMapBlocks{
-unsigned char bitMap[1024];
+    unsigned char bitMap[1024];
 };
+
+//intializing the bitmap blocks
 void initBitMap();
-void setBit( int index, int value){
-    array[b/8] |= (1 << (b%8));
-}
+
+//set the bit to 1
+void setBit(int index);
+
+//set the bit to 0
+void clearBit(int index);
+
 // Global Variables =======================================
 int vdisk_fd; // Global virtual disk file descriptor. Global within the library.
               // Will be assigned with the vsfs_mount call.
@@ -196,3 +206,11 @@ void initBitMap(){
     write_block(bBlock, 1);
     free(bBlock);
 };
+
+void setBit(int index){
+    
+}
+
+void clearBit(int index)
+
+
