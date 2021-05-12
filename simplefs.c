@@ -49,6 +49,7 @@ void initDirBlocks();
 struct fcbBlock{
     bool used[32]; // 1 for used, 0 for not used
     int indexBlock[32];
+    int sizeOfFile[32];
 };
 
 void initFcbBlocks();
@@ -175,7 +176,37 @@ int sfs_umount ()
 
 int sfs_create(char *filename)
 {
-    return (0);
+    for(int bitBlockIndex = 1; bitBlockIndex < 5; bitBlockIndex++){
+        struct bitMapBlocks* bBlock;
+        read_block(bBlock,bitBlockIndex);
+        for(int i = 0 ; i < 32767; i++){
+            if(readBit(i,bBlock->bitMap) == 0){
+                setBit(i, bBlock->bitMap); // Allocated for index Block
+                write_block(bBlock, bitBlockIndex);
+                struct dirBlock* dBlock;
+                for(int dirBlockIndex = 5; dirBlockIndex < 9; dirBlockIndex++){
+                    read_block(dBlock, dirBlockIndex);
+                    for(int j = 0; j < 32; j++){
+                        if(dBlock->iNodeFcb[j] == -1){
+                            dBlock->iNodeFcb[j] = j;
+                            struct fcbBlock* fBlock;
+                            int fBlockIndex = dirBlockIndex + 4;
+                            read_block(fBlock, fBlockIndex);
+                            fBlock->sizeOfFile[j] = 0;
+                            fBlock->used[j] = 0;
+                            fBlock->indexBlock[j] = ((bitBlockIndex-1) * 32767) + i;
+                            write_block(dBlock, dirBlockIndex);
+                            write_block(fBlock, fBlockIndex);
+                            printf("Successfully created file\n");
+                            return (0);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    printf("Could not create file\n");
+    return (-1);
 }
 
 
@@ -243,7 +274,8 @@ void clearBit(int index, unsigned char* bitMap){
 }
 
 int readBit(int index, unsigned char* bitMap){
-    return ((array[index/8] & (1 << (index%8)) != 0);
+    int result = (bitMap[index/8] &= (1 << (index%8)) != 0);
+    return result;
 }
 
 
@@ -266,6 +298,7 @@ void initFcbBlocks(){
     for (int i = 0; i < 32; i++) {
         fBlock->indexBlock[i] = -1;
         fBlock->used[i] = false;
+        fBlock->sizeOfFile[i] = -1;
     }
     write_block(fBlock, 9);
     write_block(fBlock, 10);
