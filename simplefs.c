@@ -185,7 +185,7 @@ int sfs_create(char *filename)
         bBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
         read_block(bBlock,bitBlockIndex);
         printf("I read here\n");
-        printf("readBit = %d\n", readBit(13, bBlock->bitMap));
+        clearBit(15, bBlock->bitMap);
         printf("bitMap %d\n", bBlock->bitMap[0]);
         printf("bitMap %d\n", bBlock->bitMap[1]);
         for(int i = 0 ; i < 1024; ++i){
@@ -396,8 +396,10 @@ void initBitMap(){
 };
 
 void setBit(int index, int* bitMap){
-    if (readBit(index, bitMap) != 0 )
-        exit(0);
+    if (readBit(index, bitMap) != 0 ){
+        printf("this index is full\n");
+        return (0);
+    }
     int loc = index / 8;
     int value = 1;
     int temp;
@@ -407,13 +409,13 @@ void setBit(int index, int* bitMap){
         value = value * 10;
     }
     bitMap[loc] = bitMap[loc] + value;
-    printf("bitMap %d\n", bitMap[0]);
-    printf("bitMap %d\n", bitMap[1]);
 }
 
 void clearBit(int index, int* bitMap){
-    if (readBit(index, bitMap) != 1 )
-        exit(0);
+    if (readBit(index, bitMap) != 1 ){
+        printf("this index is empty\n");
+        return (0);
+    }
     int loc = index / 8;
     int value = 1;
     int temp;
@@ -436,12 +438,10 @@ int readBit(int index, int* bitMap){
     for (int a = 0; a < temp; a++){
         value = value * 10;
     }
-    printf("value %d\n", value);
     temp1 = (double)bitMap[loc] / (double)value;
     temp1 = temp1 - 0.1;
     value = bitMap[loc] / value;
     temp2 = (double) value;
-    printf("temp1 %f temp2 %f\n", temp1, temp2);
     if (temp1 >= temp2 || temp1 == 0)
         return 1;
     else
