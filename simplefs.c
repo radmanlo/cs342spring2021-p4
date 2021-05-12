@@ -24,20 +24,20 @@ void initSupBlock(int diskSize);
 //BitMapBlocks
 // https://stackoverflow.com/questions/44978126/structure-for-an-array-of-bits-in-c
 struct bitMapBlocks{
-    unsigned char bitMap[BLOCKSIZE];
+    int bitMap[1024];
 };
 
 //intializing the bitmap blocks
 void initBitMap();
 
 //set the bit to 1
-void setBit(int index, unsigned char* bitMap);
+void setBit(int index, int* bitMap);
 
 //set the bit to 0
-void clearBit(int index, unsigned char* bitMap);
+void clearBit(int index, int* bitMap);
 
 //read the bit
-int readBit(int index, unsigned char* bitMap);
+int readBit(int index, int* bitMap);
 
 //Directory Blocks
 struct dirBlock{
@@ -184,7 +184,7 @@ int sfs_create(char *filename)
         struct bitMapBlocks* bBlock;
         bBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
         read_block(bBlock,bitBlockIndex);
-
+        printf("I read here");
         for(int i = 0 ; i < 32767; i++){
             if(readBit(i,bBlock->bitMap) == 0){
                 printf("Bitmap found availailable at i = %d, in block index = %d", i, bitBlockIndex);
@@ -339,11 +339,13 @@ void initSupBlock(int diskSize){
 };
 
 void initBitMap(){
+    printf("initialize starts\n");
     struct bitMapBlocks* bBlock;
     bBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
-    for(int i = 0 ; i < 32767; i++){
+    /*for(int i = 0 ; i < 1024; i++){
         clearBit(i, bBlock->bitMap); // it is 0 hence ready to use
-    }
+    }*/
+    printf("wtriting starts\n");
     write_block(bBlock, 2);
     write_block(bBlock, 3);
     write_block(bBlock, 4);
@@ -354,20 +356,63 @@ void initBitMap(){
     free(bBlock);
 };
 
-void setBit(int index, unsigned char* bitMap){
-    bitMap[index/8] |= (1 << (index%8));
+void setBit(int index, int* bitMap){
+    if (readBit(index, bitMap) != 0 )
+        exit(0);
+    int loc = index / 8;
+    int value = 1;
+    int temp;
+    temp = (index % 8); 
+    temp = (8 - temp) - 1;
+    for (int a = 0; a < temp; a++){
+        value = value * 10;
+    }
+    bitMap[loc] = bitMap[loc] + value;
 }
 
-void clearBit(int index, unsigned char* bitMap){
-    bitMap[index/8] &= ~(1 << (index%8));
+void clearBit(int index, int* bitMap){
+     if (readBit(index, bitMap) != 1 )
+        exit(0);
+    int loc = index / 8;
+    int value = 1;
+    int temp;
+    temp = (index % 8); 
+    temp = (8 - temp) - 1;
+    for (int a = 0; a < temp; a++){
+        value = value * 10;
+    }
+    bitMap[loc] = bitMap[loc] - value;  
 }
 
-int readBit(int index, unsigned char* bitMap){
-    int result = (bitMap[index/8] &= (1 << (index%8)) != 0);
-    printf ("in readBit resault %d and index %d\n", result, index);
-    return result;
+int readBit(int index, int* bitMap){
+    int loc = index / 8;
+    int value = 1;
+    int temp;
+    double temp1 = 0;
+    double temp2 = 0;
+    temp = (index % 8); 
+    temp = (8 - temp) - 1;
+    for (int a = 0; a < temp; a++){
+        value = value * 10;
+    }
+    if (bitMap[loc] < value) 
+        return 0;
+    else{
+        temp1 = (double)bitMap[loc] / (double)value;
+        temp1 = temp1 - 0.1;
+        value = bitMap[loc] / value;
+        temp2 = (double) value;
+        if (temp1 >= temp2 || temp1 == 0)
+            return 1;
+        else
+            return 0;
+    } 
+    return -1;
 }
 
+int readb(int index, int* bits){
+
+}
 
 void initDirBlocks(){
     struct dirBlock* dBlock;
