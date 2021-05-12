@@ -20,17 +20,17 @@ void initSupBlock(int diskSize);
 //BitMapBlocks
 // https://stackoverflow.com/questions/44978126/structure-for-an-array-of-bits-in-c
 struct bitMapBlocks{
-    unsigned char bitMap[1024];
+    unsigned char bitMap[BLOCKSIZE];
 };
 
 //intializing the bitmap blocks
 void initBitMap();
 
 //set the bit to 1
-void setBit(int index);
+void setBit(int index, unsigned char* bitMap);
 
 //set the bit to 0
-void clearBit(int index);
+void clearBit(int index, unsigned char* bitMap);
 
 // Global Variables =======================================
 int vdisk_fd; // Global virtual disk file descriptor. Global within the library.
@@ -195,22 +195,24 @@ void initBitMap(){
     struct bitMapBlocks* bBlock;
     bBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
     for(int i = 0 ; i < 1024; i++){
-        bBlock->blocks[i] = 1; // Free to use;
+        setBit(i, bBlock->bitMap);
     }
     write_block(bBlock, 2);
     write_block(bBlock, 3);
     write_block(bBlock, 4);
     for(int i = 0; i < 13; i++){
-        bBlock->blocks[i] = 0; // Not free to use;
+       clearBit(i, bBlock->bitMap);
     }
     write_block(bBlock, 1);
     free(bBlock);
 };
 
-void setBit(int index){
-    
+void setBit(int index, unsigned char* bitMap){
+    bitMap[index/8] |= (1 << (b%8));
 }
 
-void clearBit(int index)
+void clearBit(int index, unsigned char* bitMap){
+    bitMap[index/8] &= ~(1 << (b%8));
+}
 
 
