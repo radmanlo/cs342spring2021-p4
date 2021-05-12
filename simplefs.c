@@ -185,12 +185,12 @@ int sfs_create(char *filename)
         bBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
         read_block(bBlock,bitBlockIndex);
         printf("I read here\n");
-        clearBit(15, bBlock->bitMap);
+        //clearBit(15, bBlock->bitMap);
         printf("bitMap %d\n", bBlock->bitMap[0]);
         printf("bitMap %d\n", bBlock->bitMap[1]);
         for(int i = 0 ; i < 1024; ++i){
             if(readBit(i, bBlock->bitMap) == 0){
-                printf("Bitmap found availailable at i = %d, in block index = %d", i, bitBlockIndex);
+                printf("Bitmap found availailable at i = %d, in block index = %d\n", i, bitBlockIndex);
                 setBit(i, bBlock->bitMap); // Allocated for index Block
                 write_block(bBlock, bitBlockIndex);
                 struct dirBlock* dBlock;
@@ -205,16 +205,17 @@ int sfs_create(char *filename)
                             fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
                             int fBlockIndex = dirBlockIndex + 4;
                             read_block(fBlock, fBlockIndex);
+                            printf("direction %d   -   fBlock%d\n", dirBlockIndex, fBlockIndex);
                             fBlock->sizeOfFile[j] = 0;
                             fBlock->used[j] = 0;
                             fBlock->indexBlock[j] = ((bitBlockIndex-1) * 32767) + i;
-                            printf("Indexed Allocated Block is = %d", fBlock->indexBlock[j]);
+                            printf("Indexed Allocated Block is = %d\n", fBlock->indexBlock[j]);
                             write_block(dBlock, dirBlockIndex);
                             write_block(fBlock, fBlockIndex);
-                            printf("dirBlock av inode found at %d, at %d th block of dirblock ", j, dirBlockIndex);
+                            printf("dirBlock av inode found at %d, at %d th block of dirblock\n", j, dirBlockIndex);
                             printf("Successfully created file\n");
                             free(fBlock);
-                            free(bBlock);
+                            //free(bBlock);
                             free(dBlock);
                             return (0);
                         }
@@ -235,7 +236,8 @@ int sfs_open(char *file, int mode)
     struct dirBlock* db = (struct dirBlock*) malloc(sizeof (struct dirBlock));
     for(int i = 5; i < 9; i++){
         read_block(db, i);
-        for(int j = 0; j < 32; i++){
+        for(int j = 0; j < 32; j++){
+            //printf("radik");
             char* res = strstr(db->directories[j], file);
             if(res){
                 struct fcbBlock* fBlock;
@@ -286,6 +288,7 @@ int sfs_getsize (int  fd)
     int quotient = fd / 32; // INDICATES WHICH DIRECTORY BLOCK
     // Computes remainder
     int remainder = fd % 32; // INDICATES WHICH INDEX OF DIRECTORY BLOCK
+    printf("quo %d  - rem %d\n", quotient, remainder);
     struct fcbBlock* fBlock;
     fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
     read_block(fBlock, quotient+5+4);
@@ -449,7 +452,7 @@ void initBitMap(int blockCount){
 
 void setBit(int index, int* bitMap){
     if (readBit(index, bitMap) != 0 ){
-        printf("this index is full\n");
+        //printf("this index is full\n");
         return ;
     }
     int loc = index / 8;
@@ -465,7 +468,7 @@ void setBit(int index, int* bitMap){
 
 void clearBit(int index, int* bitMap){
     if (readBit(index, bitMap) != 1 ){
-        printf("this index is empty\n");
+        //printf("this index is empty\n");
         return;
     }
     int loc = index / 8;
