@@ -6,8 +6,11 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <string.h>
 #include "simplefs.h"
 
+//Global cursor to read
+int cursor = 0;
 //Superblock
 struct superBlock{
     int numBlocks;
@@ -50,6 +53,7 @@ struct fcbBlock{
     bool used[32]; // 1 for used, 0 for not used
     int indexBlock[32];
     int sizeOfFile[32];
+    int mode[32]; // 0 FOR READ ONLY | 1 FOR WRITE ONLY |
 };
 
 void initFcbBlocks();
@@ -193,6 +197,7 @@ int sfs_create(char *filename)
                     for(int j = 0; j < 32; j++){
                         if(dBlock->iNodeFcb[j] == -1){
                             dBlock->iNodeFcb[j] = j;
+                            strncpy(dBlock->directories[i], filename, 110);
                             struct fcbBlock* fBlock;
                             fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
                             int fBlockIndex = dirBlockIndex + 4;
@@ -219,25 +224,102 @@ int sfs_create(char *filename)
 
 int sfs_open(char *file, int mode)
 {
-    return (0); 
+    struct dirBlock* db = (struct dirBlock*) malloc(sizeof (struct dirBlock));
+    for(int i = 5; i < 9; i++){
+        read_block(db, i);
+        for(int j = 0; j < 32; i++){
+            char* res = strstr(db->directories[j], file);
+            if(res){
+                struct fcbBlock* fBlock;
+                fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
+                read_block(fBlock, i+4);
+                if(fBlock->used[j] == 1){
+                    printf("File is opened by another process please try later.\n");
+                    return(-1);
+                }
+                fBlock->used[j] = 1;
+                fBlock->mode[j] = mode;
+                int rFd = (((i-5)*32) + j);
+                printf("File found in sfs_open function. Fd index = %d\n", rFd);
+                return rFd; // indicates which file it is
+            }
+        }
+    }
+    printf("Error occured in sfs_open, couldn't find file.\n");
+    return (-1);
 }
 
 int sfs_close(int fd){
+    if(fd>127 || fd <0){
+        printf("There is not such available fd \n");
+        return(-1);
+    }
+    // Computes quotient
+    int quotient = fd / 32; // INDICATES WHICH DIRECTORY BLOCK
+    // Computes remainder
+    int remainder = fd % 32; // INDICATES WHICH INDEX OF DIRECTORY BLOCK
+    struct fcbBlock* fBlock;
+    fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
+    read_block(fBlock, quotient+5+4);
+    fBlock->mode[remainder] = -1;
+    fBlock->used[remainder] = 0; // Free to use now;
+    printf("File is closed! \n");
     return (0); 
 }
 
 int sfs_getsize (int  fd)
 {
-    return (0); 
+    // Computes quotient
+    int quotient = fd / 32; // INDICATES WHICH DIRECTORY BLOCK
+    // Computes remainder
+    int remainder = fd % 32; // INDICATES WHICH INDEX OF DIRECTORY BLOCK
+    struct fcbBlock* fBlock;
+    fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
+    read_block(fBlock, quotient+5+4);
+    return fBlock->sizeOfFile[remainder];
 }
 
 int sfs_read(int fd, void *buf, int n){
-    return (0); 
+    // Computes quotient
+    int quotient = fd / 32; // INDICATES WHICH DIRECTORY BLOCK
+    // Computes remainder
+    int remainder = fd % 32; // INDICATES WHICH INDEX OF DIRECTORY BLOCK
+    struct fcbBlock* fBlock;
+    fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
+    read_block(fBlock, quotient+5+4);
+    if(fBlock->sizeOfFile[remainder] >= 0){
+        printf("No available data in fd to read (sfs_read)");
+        return -1;
+    }
+    if(fBlock->mode[remainder] != MODE_READ){
+        printf("Fd is not available in READ MODE now.");
+        return (-1);
+    }
+    int sizeOfFile = fBlock->sizeOfFile[remainder];
+    int whichBlock = cursor / 4096;
+    //if(cursor % BLOCKSIZE)
+    int* blockIndexes = (int*) malloc(BLOCKSIZE / 4);
+    read_block(blockIndexes, fBlock->indexBlock[remainder]);
+    char* blockData = (char*) malloc(sizeof (BLOCKSIZE));
+    read_block(blockData, blockIndexes[whichBlock]);
+    ((char*)buf)[0] = blockData[cursor];
+    cursor = cursor + n;
+    if(cursor >= sizeOfFile){
+        cursor = 0;
+    }
+    return (0);
 }
 
 
 int sfs_append(int fd, void *buf, int n)
 {
+    // Computes quotient
+    int quotient = fd / 32; // INDICATES WHICH DIRECTORY BLOCK
+    // Computes remainder
+    int remainder = fd % 32; // INDICATES WHICH INDEX OF DIRECTORY BLOCK
+    struct fcbBlock* fBlock;
+    fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
+    read_block(fBlock, quotient+5+4);
     return (0); 
 }
 
@@ -292,6 +374,7 @@ void initDirBlocks(){
     dBlock = (struct dirBlock*) malloc(sizeof (struct  dirBlock));
     for(int i = 0; i < 32; i++){
         dBlock->iNodeFcb[i] = -1;
+        strncpy(dBlock->directories[i], '\0', 110);
     }
     write_block(dBlock, 5);
     write_block(dBlock, 6);
@@ -307,6 +390,7 @@ void initFcbBlocks(){
         fBlock->indexBlock[i] = -1;
         fBlock->used[i] = false;
         fBlock->sizeOfFile[i] = -1;
+        fBlock->mode[i] = -1;
     }
     write_block(fBlock, 9);
     write_block(fBlock, 10);
