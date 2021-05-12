@@ -112,7 +112,7 @@ int create_format_vdisk (char *vdiskname, unsigned int m)
              vdiskname, BLOCKSIZE, count);
     //printf ("executing command = %s\n", command);
     if (system (command) == -1) {
-         printf("error in creating file n create_format_vdisk function")   
+         printf("error in creating file n create_format_vdisk function");   
          return (-1);
 
     }
@@ -121,7 +121,7 @@ int create_format_vdisk (char *vdiskname, unsigned int m)
     sprintf (command, "mkfs %s", vdiskname);
     //system git to the shall
     if (system (command) == -1) {
-         printf("error in formating file in create_format_vdisk function")   
+         printf("error in formating file in create_format_vdisk function");   
          return (-1);
 
     }
@@ -190,7 +190,6 @@ int sfs_read(int fd, void *buf, int n){
     return (0); 
 }
 
-}
 
 int sfs_append(int fd, void *buf, int n)
 {
@@ -232,7 +231,6 @@ void setBit(int index, unsigned char* bitMap){
     bitMap[index/8] |= (1 << (index%8));
 }
 
-void clearBit(int index){
 void clearBit(int index, unsigned char* bitMap){
     bitMap[index/8] &= ~(1 << (index%8));
 }
