@@ -282,6 +282,7 @@ void clearBit(int index, unsigned char* bitMap){
 
 int readBit(int index, unsigned char* bitMap){
     int result = (bitMap[index/8] &= (1 << (index%8)) != 0);
+    printf ("in readBit resault %d and index %d\n", result, index);
     return result;
 }
 
