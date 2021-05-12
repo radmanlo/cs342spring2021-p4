@@ -43,12 +43,18 @@ int main(int argc, char **argv)
     sfs_create ("file5.bin");
     sfs_create ("file6.bin");
 <<<<<<< HEAD
+<<<<<<< HEAD
     printf ("\n"); 
     printf ("...............................delete......................................\n");
     sfs_delete ("file6.bin");
     printf ("delete done\n"); 
     printf ("\n"); 
     printf (".............................open........................................\n");
+=======
+
+    printf ("\n"); 
+    printf ("...........................................................................\n");
+>>>>>>> parent of 6e4be10... Delete Bug - Append Not initialized
 =======
 
     printf ("\n"); 
