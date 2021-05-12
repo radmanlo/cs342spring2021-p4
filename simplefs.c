@@ -127,9 +127,13 @@ int create_format_vdisk (char *vdiskname, unsigned int m)
     }
     sfs_mount(vdiskname);
     initSupBlock(size);
+    printf("superblock is initialized\n");
     initBitMap();
+    printf("bitmap is initialized\n");
     initDirBlocks();
+    printf("directory is initialized\n");
     initFcbBlocks();
+    printf("FCB block is initialized\n");
     sfs_umount();
     return (0); 
 }
