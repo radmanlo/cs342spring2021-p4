@@ -342,7 +342,7 @@ void initBitMap(){
     printf("initialize starts\n");
     struct bitMapBlocks* bBlock;
     bBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
-    /*for(int i = 0 ; i < 1024; i++){
+   /* for(int i = 0 ; i < 1024; i++){
         clearBit(i, bBlock->bitMap); // it is 0 hence ready to use
     }*/
     printf("wtriting starts\n");
@@ -410,16 +410,12 @@ int readBit(int index, int* bitMap){
     return -1;
 }
 
-int readb(int index, int* bits){
-
-}
-
 void initDirBlocks(){
     struct dirBlock* dBlock;
     dBlock = (struct dirBlock*) malloc(sizeof (struct  dirBlock));
     for(int i = 0; i < 32; i++){
         dBlock->iNodeFcb[i] = -1;
-        strncpy(dBlock->directories[i], '\0', 110);
+        //strncpy(dBlock->directories[i], '\0', 110);
     }
     write_block(dBlock, 5);
     write_block(dBlock, 6);
