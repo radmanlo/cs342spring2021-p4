@@ -213,12 +213,17 @@ int sfs_create(char *filename)
                             write_block(fBlock, fBlockIndex);
                             printf("dirBlock av inode found at %d, at %d th block of dirblock ", j, dirBlockIndex);
                             printf("Successfully created file\n");
+                            free(fBlock);
+                            free(bBlock);
+                            free(dBlock);
                             return (0);
                         }
                     }
                 }
+                free(dBlock);
             }
         }
+        free(bBlock);
     }
     printf("Could not create file\n");
     return (-1);
@@ -244,10 +249,13 @@ int sfs_open(char *file, int mode)
                 fBlock->mode[j] = mode;
                 int rFd = (((i-5)*32) + j);
                 printf("File found in sfs_open function. Fd index = %d\n", rFd);
+                free(fBlock);
+                free(db);
                 return rFd; // indicates which file it is
             }
         }
     }
+    free(db);
     printf("Error occured in sfs_open, couldn't find file.\n");
     return (-1);
 }
@@ -267,6 +275,8 @@ int sfs_close(int fd){
     fBlock->mode[remainder] = -1;
     fBlock->used[remainder] = 0; // Free to use now;
     printf("File is closed! \n");
+    write_block(fBlock, quotient+5+4);
+    free(fBlock);
     return (0); 
 }
 
@@ -279,7 +289,9 @@ int sfs_getsize (int  fd)
     struct fcbBlock* fBlock;
     fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
     read_block(fBlock, quotient+5+4);
-    return fBlock->sizeOfFile[remainder];
+    int size = fBlock->sizeOfFile[remainder];
+    free(fBlock);
+    return size;
 }
 
 int sfs_read(int fd, void *buf, int n){
@@ -310,6 +322,9 @@ int sfs_read(int fd, void *buf, int n){
     if(cursor >= sizeOfFile-n){
         cursor = 0;
     }
+    free(blockIndexes);
+    free(blockData);
+    free(fBlock);
     return (0);
 }
 
@@ -324,6 +339,7 @@ int sfs_append(int fd, void *buf, int n)
     struct fcbBlock* fBlock;
     fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
     read_block(fBlock, quotient+5+4);
+    free(fBlock);
     return (0); 
 }
 
@@ -351,14 +367,23 @@ int sfs_delete(char *filename)
                             k = 1025; // TYPE OF BREAK OF FOR LOOP
                         }else{
                             // Computes quotient
-                        int quotient = blockIndexes[k] / 4096; // INDICATES WHICH DIRECTORY BLOCK
+                            int quotient = blockIndexes[k] / 4096; // INDICATES WHICH bitmap BLOCK
                         // Computes remainder
-                        int remainder = blockIndexes[k] % 4096;
+                            int remainder = blockIndexes[k] % 4096; // indicates which offset of bitmap block
                         // CLEAR BITS TO NOT USED AFTER IMPLEMENTING BIT ARRAY.
                         //TODO
+                            struct bitMapBlocks* bBlock;
+                            bBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
+                            read_block(bBlock, quotient);
+                            clearBit(remainder, bBlock->bitMap);
+                            write_block(bBlock, quotient);
+                            free(bBlock);
                         }
                     }
+                    free(blockIndexes);
+                    free(fBlock);
                 }
+                return (0);
             }
         }
     }
