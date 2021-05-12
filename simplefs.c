@@ -9,6 +9,8 @@
 #include <string.h>
 #include "simplefs.h"
 
+//Global cursor to read
+int cursor = 0;
 //Superblock
 struct superBlock{
     int numBlocks;
@@ -278,12 +280,46 @@ int sfs_getsize (int  fd)
 }
 
 int sfs_read(int fd, void *buf, int n){
-    return (0); 
+    // Computes quotient
+    int quotient = fd / 32; // INDICATES WHICH DIRECTORY BLOCK
+    // Computes remainder
+    int remainder = fd % 32; // INDICATES WHICH INDEX OF DIRECTORY BLOCK
+    struct fcbBlock* fBlock;
+    fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
+    read_block(fBlock, quotient+5+4);
+    if(fBlock->sizeOfFile[remainder] >= 0){
+        printf("No available data in fd to read (sfs_read)");
+        return -1;
+    }
+    if(fBlock->mode[remainder] != MODE_READ){
+        printf("Fd is not available in READ MODE now.");
+        return (-1);
+    }
+    int sizeOfFile = fBlock->sizeOfFile[remainder];
+    int whichBlock = cursor / 4096;
+    //if(cursor % BLOCKSIZE)
+    int* blockIndexes = (int*) malloc(BLOCKSIZE / 4);
+    read_block(blockIndexes, fBlock->indexBlock[remainder]);
+    char* blockData = (char*) malloc(sizeof (BLOCKSIZE));
+    read_block(blockData, blockIndexes[whichBlock]);
+    ((char*)buf)[0] = blockData[cursor];
+    cursor = cursor + n;
+    if(cursor >= sizeOfFile){
+        cursor = 0;
+    }
+    return (0);
 }
 
 
 int sfs_append(int fd, void *buf, int n)
 {
+    // Computes quotient
+    int quotient = fd / 32; // INDICATES WHICH DIRECTORY BLOCK
+    // Computes remainder
+    int remainder = fd % 32; // INDICATES WHICH INDEX OF DIRECTORY BLOCK
+    struct fcbBlock* fBlock;
+    fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
+    read_block(fBlock, quotient+5+4);
     return (0); 
 }
 
