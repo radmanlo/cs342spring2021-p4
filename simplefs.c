@@ -75,7 +75,7 @@ int read_block (void *block, int k)
     lseek(vdisk_fd, (off_t) offset, SEEK_SET);
     n = read (vdisk_fd, block, BLOCKSIZE);
     if (n != BLOCKSIZE) {
-	printf ("read error\n");
+	    printf ("read error\n");
 	return -1;
     }
     return (0); 
@@ -179,6 +179,7 @@ int sfs_create(char *filename)
     for(int bitBlockIndex = 1; bitBlockIndex < 5; bitBlockIndex++){
         struct bitMapBlocks* bBlock;
         read_block(bBlock,bitBlockIndex);
+
         for(int i = 0 ; i < 32767; i++){
             if(readBit(i,bBlock->bitMap) == 0){
                 setBit(i, bBlock->bitMap); // Allocated for index Block

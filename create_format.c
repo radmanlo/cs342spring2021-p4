@@ -27,4 +27,14 @@ int main(int argc, char **argv)
     }
 
     printf ("disk created and formatted. %s %d\n", vdiskname, m); 
+
+    ret = sfs_mount (vdiskname);
+    if (ret != 0) {
+        printf ("could not mount \n");
+        exit (1);
+    }
+
+    printf ("creating files\n"); 
+    sfs_create ("file1.bin");
+    ret = sfs_umount();
 }
