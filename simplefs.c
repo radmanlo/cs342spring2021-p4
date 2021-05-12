@@ -194,25 +194,25 @@ void initSupBlock(int diskSize){
 void initBitMap(){
     struct bitMapBlocks* bBlock;
     bBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
-    for(int i = 0 ; i < 1024; i++){
-        setBit(i, bBlock->bitMap);
+    for(int i = 0 ; i < 32767; i++){
+        clearBit(i, bBlock->bitMap); // it is 0 hence ready to use
     }
     write_block(bBlock, 2);
     write_block(bBlock, 3);
     write_block(bBlock, 4);
     for(int i = 0; i < 13; i++){
-       clearBit(i, bBlock->bitMap);
+       setBit(i, bBlock->bitMap); // these bits are 1. are already to use
     }
     write_block(bBlock, 1);
     free(bBlock);
 };
 
 void setBit(int index, unsigned char* bitMap){
-    bitMap[index/8] |= (1 << (b%8));
+    bitMap[index/8] |= (1 << (index%8));
 }
 
 void clearBit(int index, unsigned char* bitMap){
-    bitMap[index/8] &= ~(1 << (b%8));
+    bitMap[index/8] &= ~(1 << (index%8));
 }
 
 
