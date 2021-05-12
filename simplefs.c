@@ -205,6 +205,10 @@ int sfs_create(char *filename)
                             fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
                             int fBlockIndex = dirBlockIndex + 4;
                             read_block(fBlock, fBlockIndex);
+<<<<<<< HEAD
+=======
+                            printf("direction %d   -   fBlock%d\n", dirBlockIndex, fBlockIndex);
+>>>>>>> parent of 6e4be10... Delete Bug - Append Not initialized
                             fBlock->sizeOfFile[j] = 0;
                             fBlock->used[j] = 0;
                             fBlock->indexBlock[j] = ((bitBlockIndex-1) * 32767) + i;
