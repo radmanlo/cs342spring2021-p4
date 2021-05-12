@@ -136,10 +136,10 @@ int create_format_vdisk (char *vdiskname, unsigned int m)
     sfs_mount(vdiskname);
     initSupBlock(size);
     printf("superblock is initialized\n");
-    initBitMap();
+    initBitMap(count);
     printf("bitmap is initialized\n");
     initDirBlocks();
-    printf("directory is initialized\n");
+    printf("directory is i nitialized\n");
     initFcbBlocks();
     printf("FCB block is initialized\n");
     sfs_umount();
@@ -377,28 +377,55 @@ void initSupBlock(int diskSize){
     free(supBlock);
 };
 
-void initBitMap(){
+void initBitMap(int blockCount){
     printf("initialize starts\n");
     struct bitMapBlocks* bBlock;
     bBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
-   /* for(int i = 0 ; i < 1024; i++){
-        clearBit(i, bBlock->bitMap); // it is 0 hence ready to use
-    }*/
-    printf("wtriting starts\n");
-    write_block(bBlock, 2);
-    write_block(bBlock, 3);
-    write_block(bBlock, 4);
     for(int i = 0; i < 13; i++){
-       setBit(i, bBlock->bitMap); // these bits are 1. are already to use
+        setBit(i, bBlock->bitMap); // these bits are 1. are already used
     }
-    write_block(bBlock, 1);
+    if(blockCount < 4096){
+        for(int i = 13; i < blockCount; i++ ){
+            clearBit(i, bBlock->bitMap);  // Ready to use -0
+        }
+        for(int i = blockCount; i < 4096; i++){
+            setBit(i, bBlock->bitMap);
+        }
+        write_block(bBlock,1);
+        for(int i = 0 ; i < 4096; i++){
+            setBit(i,bBlock->bitMap);
+        }
+        write_block(bBlock, 2);
+        write_block(bBlock, 3);
+        write_block(bBlock, 4);
+    }else{
+        for(int i = 13; i < 4096; i++){
+            clearBit(i, bBlock->bitMap);  // Ready to use -0
+        }
+        write_block(bBlock,1);
+        int remainingBlock = blockCount - 4096;
+        for(int i = 2; i<5; i++){
+            for(int l = 0; l < 4096; l++){
+                clearBit(l, bBlock->bitMap);  // CLEAR BLOCK FOR OTHERS
+            }
+            for(int j = 0 ; j < 4096; j++){
+                if(remainingBlock > 0){
+                    clearBit(j,bBlock); // AVAILABLE
+                    remainingBlock--;
+                }else{
+                    setBit(j, bBlock); // NOT AVAILABLE
+                }
+            }
+            write_block(bBlock, i);
+        }
+    }
     free(bBlock);
 };
 
 void setBit(int index, int* bitMap){
     if (readBit(index, bitMap) != 0 ){
         printf("this index is full\n");
-        return (0);
+        return ;
     }
     int loc = index / 8;
     int value = 1;
@@ -414,7 +441,7 @@ void setBit(int index, int* bitMap){
 void clearBit(int index, int* bitMap){
     if (readBit(index, bitMap) != 1 ){
         printf("this index is empty\n");
-        return (0);
+        return;
     }
     int loc = index / 8;
     int value = 1;
