@@ -33,8 +33,8 @@ int main(int argc, char **argv)
         printf ("could not mount \n");
         exit (1);
     }
-    printf ("\n"); 
-    printf ("...............................create.....................................\n");
+
+    printf ("..........................CREATE............................................\n");
     printf ("creating files\n"); 
     sfs_create ("file1.bin");
     sfs_create ("file2.bin");
@@ -50,6 +50,7 @@ int main(int argc, char **argv)
     printf (".............................open........................................\n");
     int fd = sfs_open("file1.bin", 0);
     int fd1 = sfs_open("file4.bin", 0);
+
     sfs_open("file1dwad.bin", 0);
     printf("size of size = %d\n", sfs_getsize(fd));
     printf("size of size = %d\n", sfs_getsize(fd1));

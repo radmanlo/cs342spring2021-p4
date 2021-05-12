@@ -352,25 +352,20 @@ int sfs_delete(char *filename)
         read_block(db, i);
         
         for(int j = 0; j < 32; j++){
-            printf("hey I am here %d\n", j);
             char* res = strstr(db->directories[j], filename);
             if(res){
-                printf("hey I am here\n");
                 if(db->iNodeFcb[j] != -1) {
-                    printf("hey I am here\n");
+                    
                     db->iNodeFcb[j] = -1;
                     write_block(db,i);
                     struct fcbBlock *fBlock;
                     fBlock = (struct fcbBlock *) malloc(sizeof(struct fcbBlock));
                     read_block(fBlock, i + 4);
-                    printf("hey I am here");
                     int *blockIndexes = (int *) malloc(BLOCKSIZE / 4);
                     read_block(blockIndexes, fBlock->indexBlock[j]);
                     fBlock->sizeOfFile[j] = 0;
                     write_block(fBlock, i+4);
-                    printf("hey I am here");
                     for (int k = 0; k < 1024; k++) {
-                        printf("hey I am here");
                         if (blockIndexes[k] == -1) {
                             k = 1025; // TYPE OF BREAK OF FOR LOOP
                         }else{
@@ -380,7 +375,6 @@ int sfs_delete(char *filename)
                             int remainder = blockIndexes[k] % 4096; // indicates which offset of bitmap block
                         // CLEAR BITS TO NOT USED AFTER IMPLEMENTING BIT ARRAY.
                         //TODO
-                            printf("hey I am here");
                             struct bitMapBlocks* bBlock;
                             bBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
                             read_block(bBlock, quotient);
