@@ -33,6 +33,9 @@ void setBit(int index, unsigned char* bitMap);
 //set the bit to 0
 void clearBit(int index, unsigned char* bitMap);
 
+//read the bit
+int readBit(int index, unsigned char* bitMap);
+
 //Directory Blocks
 struct dirBlock{
     char directories[32][110];
@@ -237,6 +240,10 @@ void setBit(int index, unsigned char* bitMap){
 
 void clearBit(int index, unsigned char* bitMap){
     bitMap[index/8] &= ~(1 << (index%8));
+}
+
+int readBit(int index, unsigned char* bitMap){
+    return ((array[index/8] & (1 << (index%8)) != 0);
 }
 
 
