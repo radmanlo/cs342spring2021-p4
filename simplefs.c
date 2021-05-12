@@ -307,7 +307,7 @@ int sfs_read(int fd, void *buf, int n){
     read_block(blockData, blockIndexes[whichBlock]);
     ((char*)buf)[0] = blockData[cursor];
     cursor = cursor + n;
-    if(cursor >= sizeOfFile){
+    if(cursor >= sizeOfFile-n){
         cursor = 0;
     }
     return (0);
@@ -316,6 +316,7 @@ int sfs_read(int fd, void *buf, int n){
 
 int sfs_append(int fd, void *buf, int n)
 {
+    //TODO
     // Computes quotient
     int quotient = fd / 32; // INDICATES WHICH DIRECTORY BLOCK
     // Computes remainder
@@ -328,6 +329,41 @@ int sfs_append(int fd, void *buf, int n)
 
 int sfs_delete(char *filename)
 {
+    struct dirBlock* db = (struct dirBlock*) malloc(sizeof (struct dirBlock));
+    for(int i = 5; i < 9; i++){
+        read_block(db, i);
+        for(int j = 0; j < 32; j++){
+            char* res = strstr(db->directories[j], filename);
+            if(res){
+                if(db->iNodeFcb[j] != -1) {
+                    db->iNodeFcb[j] = -1;
+                    write_block(db,i);
+                    struct fcbBlock *fBlock;
+                    fBlock = (struct fcbBlock *) malloc(sizeof(struct fcbBlock));
+                    read_block(fBlock, i + 4);
+
+                    int *blockIndexes = (int *) malloc(BLOCKSIZE / 4);
+                    read_block(blockIndexes, fBlock->indexBlock[j]);
+                    fBlock->sizeOfFile[j] = 0;
+                    write_block(fBlock, i+4);
+                    for (int k = 0; k < 1024; k++) {
+                        if (blockIndexes[k] == -1) {
+                            k = 1025; // TYPE OF BREAK OF FOR LOOP
+                        }else{
+                            // Computes quotient
+                        int quotient = blockIndexes[k] / 4096; // INDICATES WHICH DIRECTORY BLOCK
+                        // Computes remainder
+                        int remainder = blockIndexes[k] % 4096;
+                        // CLEAR BITS TO NOT USED AFTER IMPLEMENTING BIT ARRAY.
+                        //TODO
+                        }
+                    }
+                }
+            }
+        }
+    }
+    printf("Error occured in sfs_open, couldn't find file.\n");
+    return (-1);
     return (0); 
 }
 
