@@ -178,6 +178,7 @@ int sfs_create(char *filename)
 {
     for(int bitBlockIndex = 1; bitBlockIndex < 5; bitBlockIndex++){
         struct bitMapBlocks* bBlock;
+        bBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
         read_block(bBlock,bitBlockIndex);
 
         for(int i = 0 ; i < 32767; i++){
@@ -185,12 +186,14 @@ int sfs_create(char *filename)
                 setBit(i, bBlock->bitMap); // Allocated for index Block
                 write_block(bBlock, bitBlockIndex);
                 struct dirBlock* dBlock;
+                dBlock = (struct dirBlock*) malloc(sizeof (struct  dirBlock));
                 for(int dirBlockIndex = 5; dirBlockIndex < 9; dirBlockIndex++){
                     read_block(dBlock, dirBlockIndex);
                     for(int j = 0; j < 32; j++){
                         if(dBlock->iNodeFcb[j] == -1){
                             dBlock->iNodeFcb[j] = j;
                             struct fcbBlock* fBlock;
+                            fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
                             int fBlockIndex = dirBlockIndex + 4;
                             read_block(fBlock, fBlockIndex);
                             fBlock->sizeOfFile[j] = 0;
