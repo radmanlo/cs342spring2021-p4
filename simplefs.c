@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include "simplefs.h"
 
 //Superblock
@@ -31,6 +32,23 @@ void setBit(int index, unsigned char* bitMap);
 
 //set the bit to 0
 void clearBit(int index, unsigned char* bitMap);
+
+//Directory Blocks
+struct dirBlock{
+    char directories[32][110];
+    int iNodeFcb[32];
+};
+
+//initializing directory blocks
+void initDirBlocks();
+
+//Fcb blocks
+struct fcbBlock{
+    bool used[32]; // 1 for used, 0 for not used
+    int indexBlock[32];
+};
+
+void initFcbBlocks();
 
 // Global Variables =======================================
 int vdisk_fd; // Global virtual disk file descriptor. Global within the library.
@@ -110,6 +128,8 @@ int create_format_vdisk (char *vdiskname, unsigned int m)
     sfs_mount(vdiskname);
     initSupBlock(size);
     initBitMap();
+    initDirBlocks();
+    initFcbBlocks();
     sfs_umount();
     return (0); 
 }
@@ -170,6 +190,7 @@ int sfs_read(int fd, void *buf, int n){
     return (0); 
 }
 
+}
 
 int sfs_append(int fd, void *buf, int n)
 {
@@ -211,8 +232,35 @@ void setBit(int index, unsigned char* bitMap){
     bitMap[index/8] |= (1 << (index%8));
 }
 
+void clearBit(int index){
 void clearBit(int index, unsigned char* bitMap){
     bitMap[index/8] &= ~(1 << (index%8));
 }
 
 
+void initDirBlocks(){
+    struct dirBlock* dBlock;
+    dBlock = (struct dirBlock*) malloc(sizeof (struct  dirBlock));
+    for(int i = 0; i < 32; i++){
+        dBlock->iNodeFcb[i] = -1;
+    }
+    write_block(dBlock, 5);
+    write_block(dBlock, 6);
+    write_block(dBlock, 7);
+    write_block(dBlock, 8);
+    free(dBlock);
+}
+
+void initFcbBlocks(){
+    struct fcbBlock* fBlock;
+    fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
+    for (int i = 0; i < 32; i++) {
+        fBlock->indexBlock[i] = -1;
+        fBlock->used[i] = false;
+    }
+    write_block(fBlock, 9);
+    write_block(fBlock, 10);
+    write_block(fBlock, 11);
+    write_block(fBlock, 12);
+    free(fBlock);
+};
