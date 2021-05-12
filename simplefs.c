@@ -200,12 +200,12 @@ int sfs_create(char *filename)
                     for(int j = 0; j < 32; j++){
                         if(dBlock->iNodeFcb[j] == -1){
                             dBlock->iNodeFcb[j] = j;
-                            strncpy(dBlock->directories[i], filename, 110);
+                            strncpy(dBlock->directories[j], filename, 110);
                             struct fcbBlock* fBlock;
                             fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
                             int fBlockIndex = dirBlockIndex + 4;
                             read_block(fBlock, fBlockIndex);
-                            printf("direction %d   -   fBlock%d\n", dirBlockIndex, fBlockIndex);
+                            printf("j %d - direction %d   -   fBlock%d\n", j, dirBlockIndex, fBlockIndex);
                             fBlock->sizeOfFile[j] = 0;
                             fBlock->used[j] = 0;
                             fBlock->indexBlock[j] = ((bitBlockIndex-1) * 32767) + i;
@@ -362,34 +362,60 @@ int sfs_delete(char *filename)
                     read_block(fBlock, i + 4);
 
                     int *blockIndexes = (int *) malloc(BLOCKSIZE / 4);
+                    printf("Index Of Block : %d\n", fBlock->indexBlock[j]);
                     read_block(blockIndexes, fBlock->indexBlock[j]);
                     fBlock->sizeOfFile[j] = 0;
                     write_block(fBlock, i+4);
                     for (int k = 0; k < 1024; k++) {
+
+                        printf("BURAYA GELIYO MU LAAA \n");
                         if (blockIndexes[k] == -1) {
+                            printf("ıf ıcıne GELIYO MU LAAA \n");
+
                             k = 1025; // TYPE OF BREAK OF FOR LOOP
                         }else{
+                            printf("else ıcıne GELIYO MU LAAA \n");
+                            printf("%d\n", blockIndexes[k]);
+                            if(blockIndexes[k] == 0){
+                                //struct bitMapBlocks* bbBlock;
+                                //bbBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
+                                //read_block(bbBlock, quotient);
+                                return 0;
+                            }
                             // Computes quotient
                             int quotient = blockIndexes[k] / 4096; // INDICATES WHICH bitmap BLOCK
                         // Computes remainder
                             int remainder = blockIndexes[k] % 4096; // indicates which offset of bitmap block
                         // CLEAR BITS TO NOT USED AFTER IMPLEMENTING BIT ARRAY.
-                        //TODO
-                            struct bitMapBlocks* bBlock;
-                            bBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
-                            read_block(bBlock, quotient);
-                            clearBit(remainder, bBlock->bitMap);
-                            write_block(bBlock, quotient);
-                            free(bBlock);
+                            printf("else devamına GELIYO MU LAAA \n");
+                            printf("quo %d, rem %d", quotient, remainder);
+
+                            struct bitMapBlocks* bbBlock;
+                            bbBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
+                            printf("else devamına GELIYO MU LAAA \n");
+                            printf("quo %d, rem %d", quotient, remainder);
+                            read_block(bbBlock, quotient);
+
+                            printf("else devamına GELIYO MU LAAA \n");
+
+                            clearBit(remainder, bbBlock->bitMap);
+                            printf("else devamına GELIYO MU LAAA \n");
+
+                            write_block(bbBlock, quotient);
+                            free(bbBlock);
                         }
                     }
+                    printf("sen kirmizi sortli BURAYA GELIYO MU LAAA \n");
+
                     free(blockIndexes);
                     free(fBlock);
                 }
+                free(db);
                 return (0);
             }
         }
     }
+    free(db);
     printf("Error occured in sfs_open, couldn't find file.\n");
     return (-1);
     return (0); 
