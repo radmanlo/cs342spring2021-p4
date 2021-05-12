@@ -183,6 +183,7 @@ int sfs_create(char *filename)
 
         for(int i = 0 ; i < 32767; i++){
             if(readBit(i,bBlock->bitMap) == 0){
+                printf("Bitmap found availailable at i = %d, in block index = %d", i, bitBlockIndex);
                 setBit(i, bBlock->bitMap); // Allocated for index Block
                 write_block(bBlock, bitBlockIndex);
                 struct dirBlock* dBlock;
@@ -199,8 +200,10 @@ int sfs_create(char *filename)
                             fBlock->sizeOfFile[j] = 0;
                             fBlock->used[j] = 0;
                             fBlock->indexBlock[j] = ((bitBlockIndex-1) * 32767) + i;
+                            printf("Indexed Allocated Block is = %d", fBlock->indexBlock[j]);
                             write_block(dBlock, dirBlockIndex);
                             write_block(fBlock, fBlockIndex);
+                            printf("dirBlock av inode found at %d, at %d th block of dirblock ", j, dirBlockIndex);
                             printf("Successfully created file\n");
                             return (0);
                         }
