@@ -36,5 +36,8 @@ int main(int argc, char **argv)
 
     printf ("creating files\n"); 
     sfs_create ("file1.bin");
+    printf ("\n"); 
+    printf ("...........................................................................\n");
+    sfs_open("file1.bin", 0);
     ret = sfs_umount();
 }

@@ -410,10 +410,10 @@ void initBitMap(int blockCount){
             }
             for(int j = 0 ; j < 4096; j++){
                 if(remainingBlock > 0){
-                    clearBit(j,bBlock); // AVAILABLE
+                    clearBit(j,bBlock->bitMap); // AVAILABLE
                     remainingBlock--;
                 }else{
-                    setBit(j, bBlock); // NOT AVAILABLE
+                    setBit(j, bBlock->bitMap); // NOT AVAILABLE
                 }
             }
             write_block(bBlock, i);
