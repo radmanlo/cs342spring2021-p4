@@ -4,15 +4,6 @@
 #include <string.h>
 #include "simplefs.h"
 
-
-
-
-
-
-
-
-
-
 int main(int argc, char **argv)
 {
     int ret;

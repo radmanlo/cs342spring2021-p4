@@ -184,9 +184,12 @@ int sfs_create(char *filename)
         struct bitMapBlocks* bBlock;
         bBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
         read_block(bBlock,bitBlockIndex);
-        printf("I read here");
-        for(int i = 0 ; i < 32767; i++){
-            if(readBit(i,bBlock->bitMap) == 0){
+        printf("I read here\n");
+        printf("readBit = %d\n", readBit(13, bBlock->bitMap));
+        printf("bitMap %d\n", bBlock->bitMap[0]);
+        printf("bitMap %d\n", bBlock->bitMap[1]);
+        for(int i = 0 ; i < 1024; ++i){
+            if(readBit(i, bBlock->bitMap) == 0){
                 printf("Bitmap found availailable at i = %d, in block index = %d", i, bitBlockIndex);
                 setBit(i, bBlock->bitMap); // Allocated for index Block
                 write_block(bBlock, bitBlockIndex);
@@ -368,10 +371,12 @@ void setBit(int index, int* bitMap){
         value = value * 10;
     }
     bitMap[loc] = bitMap[loc] + value;
+    printf("bitMap %d\n", bitMap[0]);
+    printf("bitMap %d\n", bitMap[1]);
 }
 
 void clearBit(int index, int* bitMap){
-     if (readBit(index, bitMap) != 1 )
+    if (readBit(index, bitMap) != 1 )
         exit(0);
     int loc = index / 8;
     int value = 1;
@@ -391,22 +396,20 @@ int readBit(int index, int* bitMap){
     double temp1 = 0;
     double temp2 = 0;
     temp = (index % 8); 
-    temp = (8 - temp) - 1;
+    temp = (8 - temp);
     for (int a = 0; a < temp; a++){
         value = value * 10;
     }
-    if (bitMap[loc] < value) 
+    printf("value %d\n", value);
+    temp1 = (double)bitMap[loc] / (double)value;
+    temp1 = temp1 - 0.1;
+    value = bitMap[loc] / value;
+    temp2 = (double) value;
+    printf("temp1 %f temp2 %f\n", temp1, temp2);
+    if (temp1 >= temp2 || temp1 == 0)
+        return 1;
+    else
         return 0;
-    else{
-        temp1 = (double)bitMap[loc] / (double)value;
-        temp1 = temp1 - 0.1;
-        value = bitMap[loc] / value;
-        temp2 = (double) value;
-        if (temp1 >= temp2 || temp1 == 0)
-            return 1;
-        else
-            return 0;
-    } 
     return -1;
 }
 
