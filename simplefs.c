@@ -13,6 +13,7 @@
 int cursor = 0;
 int writeCursor = 0;
 int lastBlockIndex = -1;
+int appendCount = 0;
 //Superblock
 struct superBlock{
     int numBlocks;
@@ -293,6 +294,8 @@ int sfs_close(int fd){
     printf("File is closed! \n");
     write_block(fBlock, quotient+5+4);
     free(fBlock);
+    printf("\nAppend count = %d\n", appendCount);
+
     return (0); 
 }
 
@@ -406,7 +409,7 @@ int sfs_append(int fd, void *buf, int n)
                     write_block(bbBlock,quotient);
                     allocationIndex = ((i - 1 )*32768 )+ j;
                     //printf("Ilk yer bulundu : %d\n", allocationIndex);
-
+                    appendCount++;
                     i = 6; // BREAK
                     j = 32769; // BREAK
 
@@ -488,11 +491,11 @@ int sfs_delete(char *filename)
                             free(blockIndexes);
                             return 0;
                         }else if ( k!= 0 && blockIndexes[k] == -1) {
-                            printf("ıf ıcıne GELIYO MU LAAA \n");
+                            //printf("ıf ıcıne GELIYO MU LAAA \n");
 
                             k = 1025; // TYPE OF BREAK OF FOR LOOP
                         }else{
-                            printf("else ıcıne GELIYO MU LAAA \n");
+                            //printf("else ıcıne GELIYO MU LAAA \n");
                             printf("%d\n", blockIndexes[k]);
                             if(blockIndexes[k] == 0){
                                 //struct bitMapBlocks* bbBlock;
