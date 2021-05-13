@@ -36,13 +36,14 @@ int main(int argc, char **argv)
 
     fd1 = sfs_open ("file1.bin", MODE_APPEND);
     fd2 = sfs_open ("file2.bin", MODE_APPEND);
-    for (i = 0; i < 10000; ++i) {
+    for (i = 0; i < 5; ++i) {
         buffer[0] =   (char) 65;
         sfs_append (fd1, (void *) buffer, 1);
     }
 
-    for (i = 0; i < 10000; ++i) {
+    for (i = 0; i < 5; ++i) {
         buffer[0] = (char) 65;
+        printf("\nbuffer 0 = %c\n", buffer[0]);
         buffer[1] = (char) 66;
         buffer[2] = (char) 67;
         buffer[3] = (char) 68;
@@ -53,8 +54,9 @@ int main(int argc, char **argv)
     sfs_close(fd2);
 
     fd = sfs_open("file3.bin", MODE_APPEND);
-    for (i = 0; i < 10000; ++i) {
-        memcpy (buffer, buffer2, 8); // just to show memcpy
+    for (i = 0; i < 4; ++i) {
+        //memcpy (buffer, buffer2, 8); // just to show memcpy
+        printf("Buffer written, %c\n", buffer[0]);
         sfs_append(fd, (void *) buffer, 8);
     }
     sfs_close (fd);
@@ -64,6 +66,7 @@ int main(int argc, char **argv)
     for (i = 0; i < size; ++i) {
         sfs_read (fd, (void *) buffer, 1);
         c = (char) buffer[0];
+        printf("%c\n", c);
         c = c + 1;
     }
     sfs_close (fd);

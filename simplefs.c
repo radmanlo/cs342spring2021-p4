@@ -11,6 +11,7 @@
 
 //Global cursor to read
 int cursor = 0;
+int writeCursor = 0;
 int lastBlockIndex = -1;
 //Superblock
 struct superBlock{
@@ -263,6 +264,7 @@ int sfs_open(char *file, int mode)
                 fBlock->mode[j] = mode;
                 int rFd = (((i-5)*32) + j);
                 printf("File found in sfs_open function. Fd index = %d\n", rFd);
+                write_block(fBlock, i+4);
                 free(fBlock);
                 free(db);
                 return rFd; // indicates which file it is
@@ -330,12 +332,18 @@ int sfs_read(int fd, void *buf, int n){
     //if(cursor % BLOCKSIZE)
     int* blockIndexes = (int*) malloc(sizeof(int[1024]));
     read_block(blockIndexes, fBlock->indexBlock[remainder]);
+    //printf("Hangi file remainderi %d ve hangi block fd si: %d\n", remainder, quotient+9);
     if(lastBlockIndex != blockIndexes[whichBlock]){
         cursor = 0;
     }
     char* blockData = (char*) malloc(sizeof(char[4096]));
     read_block(blockData, blockIndexes[whichBlock]);
+   // printf("Okunan block indexi, %d\n", blockIndexes[whichBlock]);
     ((char*)buf)[0] = blockData[cursor];
+   // printf("Okunan data ,%c\n",blockData[cursor]);
+  //  printf("Read Cursor ,%d\n",cursor);
+  //  printf("Buffera okunurken yazılan, %c\n",((char*)buf)[0] );
+
     int remCur = cursor % 4096;
     int ctr = 0;
     for(int i = remCur; i < remCur + n; i++){
@@ -347,6 +355,7 @@ int sfs_read(int fd, void *buf, int n){
         cursor = 0;
     }
     lastBlockIndex = blockIndexes[whichBlock];
+    //write_block(blockIndexes, fBlock->indexBlock[remainder]);
     free(blockIndexes);
     free(blockData);
     free(fBlock);
@@ -368,27 +377,78 @@ int sfs_append(int fd, void *buf, int n)
         return (-1);
     }
     int sizeOfFile = fBlock->sizeOfFile[remainder];
-    int whichBlock = cursor / 4096;
+    //printf("APPEND Hangi file remainderi %d ve hangi block fd si: %d\n", remainder, quotient+9);
+    //printf("Size Of File : %d, ", sizeOfFile);
+    writeCursor = sizeOfFile % 4096;
+    int whichBlock = sizeOfFile / 4096;
+    if(writeCursor > 4096 - n ){
+        writeCursor = 0;
+    }
+
     //if(cursor % BLOCKSIZE)
     int* blockIndexes = (int*) malloc(sizeof(int[1024]));
     read_block(blockIndexes, fBlock->indexBlock[remainder]);
-    char* blockData = (char*) malloc(sizeof(char[4096]));
-    read_block(blockData, blockIndexes[whichBlock]);
-    ((char*)buf)[0] = blockData[cursor];
-    int remCur = cursor % 4096;
-    int ctr = 0;
-    for(int i = remCur; i < remCur + n; i++){
-        ((char*)buf)[ctr] = blockData[i];
-        ctr++;
+    //printf("Index Block Şurası: %d\n", fBlock->indexBlock[remainder]);
+    if(lastBlockIndex != blockIndexes[whichBlock]){
+        printf("Burda write Cursor Sıfırlanır\n");
+        lastBlockIndex = blockIndexes[whichBlock];
+        writeCursor = 0;
     }
-    cursor = cursor + n;
+    int allocationIndex = -1;
+    //printf("whichBlock: %d\n", whichBlock);
+    //printf("blockindexes[whichBlock: %d\n", blockIndexes[whichBlock]);
+    if(blockIndexes[whichBlock] == -1){
+        for(int i = 1; i < 5; i++){
+            struct bitMapBlocks* bbBlock;
+            bbBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
+            read_block(bbBlock, i);
+            //Search on bitmaps for available block
+            for(int j = 0; j < 32768; j++){
+                if(allocationIndex == -1 && readBit(j, bbBlock->bitMap) == 0 ){
+                    //printf("Ilk yer J : %d\n", j);
+                    setBit(j, bbBlock->bitMap); // ALLOCATE FOR NEW BLOCK
+                    write_block(bbBlock,quotient);
+                    allocationIndex = ((i - 1 )*32768 )+ j;
+                    //printf("Ilk yer bulundu : %d\n", allocationIndex);
+
+                    i = 6; // BREAK
+                    j = 32769; // BREAK
+
+                }
+            }
+            free(bbBlock);
+        }
+        if(allocationIndex != -1){
+            blockIndexes[whichBlock] = allocationIndex;
+        }else{
+            printf("Couldn't find available block on disk. Append ends.!");
+            free(blockIndexes);
+            return -1;
+        }
+    }
+
+    char* blockData = (char*) malloc(sizeof(char[4096]));
+    //printf("Which Block to Read First: %d, whichBock: %d\n", blockIndexes[whichBlock], whichBlock);
+    read_block(blockData, blockIndexes[whichBlock]);
+    for(int i = 0; i < n; i++){
+        blockData[writeCursor] = ((char*)buf)[i];
+        //printf("Yazılacak char %c\n",((char*)buf)[i] );
+      //  printf("YazılanNNN char %c\n",blockData[writeCursor]);
+     //   printf("Cursoru yazılan, %d\n", writeCursor);
+        writeCursor++;
+    }
+    write_block(blockData, blockIndexes[whichBlock]);
+   // printf("Yazılan data block indexi %d,\n", blockIndexes[whichBlock]);
     if(cursor >= sizeOfFile){
         cursor = 0;
     }
+    fBlock->sizeOfFile[remainder] = fBlock->sizeOfFile[remainder] + n;
+    write_block(fBlock,quotient+5+4);
+    write_block(blockIndexes,fBlock->indexBlock[remainder]);
     free(blockIndexes);
     free(blockData);
     free(fBlock);
-    return (0);
+    return (n);
 }
 
 int sfs_delete(char *filename)
