@@ -389,11 +389,7 @@ int sfs_append(int fd, void *buf, int n)
     int* blockIndexes = (int*) malloc(sizeof(int[1024]));
     read_block(blockIndexes, fBlock->indexBlock[remainder]);
     //printf("Index Block Şurası: %d\n", fBlock->indexBlock[remainder]);
-    if(lastBlockIndex != blockIndexes[whichBlock]){
-        printf("Burda write Cursor Sıfırlanır\n");
-        lastBlockIndex = blockIndexes[whichBlock];
-        writeCursor = 0;
-    }
+
     int allocationIndex = -1;
     //printf("whichBlock: %d\n", whichBlock);
     //printf("blockindexes[whichBlock: %d\n", blockIndexes[whichBlock]);
@@ -426,7 +422,12 @@ int sfs_append(int fd, void *buf, int n)
             return -1;
         }
     }
-
+    //printf("lastblock index = %d, blockIndexes[whichblock]= %d\n",lastBlockIndex, blockIndexes[whichBlock]);
+    if(lastBlockIndex != blockIndexes[whichBlock]){
+        //printf("Burda write Cursor Sıfırlanır\n");
+        lastBlockIndex = blockIndexes[whichBlock];
+        writeCursor = 0;
+    }
     char* blockData = (char*) malloc(sizeof(char[4096]));
     //printf("Which Block to Read First: %d, whichBock: %d\n", blockIndexes[whichBlock], whichBlock);
     read_block(blockData, blockIndexes[whichBlock]);
