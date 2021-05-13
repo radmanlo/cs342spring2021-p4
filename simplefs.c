@@ -257,6 +257,8 @@ int sfs_open(char *file, int mode)
                 fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
                 read_block(fBlock, i+4);
                 if(fBlock->used[j] == 1){
+                    free(fBlock);
+                    free(db);
                     printf("File is opened by another process please try later.\n");
                     return(-1);
                 }
@@ -271,7 +273,7 @@ int sfs_open(char *file, int mode)
             }
         }
     }
-    free(db);
+    //free(db);
     printf("Error occured in sfs_open, couldn't find file.\n");
     return (-1);
 }
@@ -322,11 +324,11 @@ int sfs_read(int fd, void *buf, int n){
     fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
     read_block(fBlock, quotient+5+4);
     if(fBlock->sizeOfFile[remainder] <= 0){
-        printf("No available data in fd to read (sfs_read)");
+        printf("No available data in fd to read (sfs_read)\n");
         return -1;
     }
     if(fBlock->mode[remainder] != MODE_READ){
-        printf("Fd is not available in READ MODE now.");
+        printf("Fd is not available in READ MODE now.\n");
         return (-1);
     }
     int sizeOfFile = fBlock->sizeOfFile[remainder];
