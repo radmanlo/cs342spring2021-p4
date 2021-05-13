@@ -214,9 +214,20 @@ int sfs_create(char *filename)
                             write_block(fBlock, fBlockIndex);
                             printf("dirBlock av inode found at %d, at %d th block of dirblock\n", j, dirBlockIndex);
                             printf("Successfully created file\n");
+                        int* blockIndexes = (int*) malloc(sizeof(int[1024]));
+                            for(int i = 0; i < 1024; i++){
+                                blockIndexes[i] = -1;
+                            }
+
+                            write_block(blockIndexes, fBlock->indexBlock[j]);
+
+                            free(blockIndexes);
+
                             free(fBlock);
+
                             //free(bBlock);
                             free(dBlock);
+
                             return (0);
                         }
                     }
@@ -239,7 +250,7 @@ int sfs_open(char *file, int mode)
         for(int j = 0; j < 32; j++){
             //printf("radik");
             char* res = strstr(db->directories[j], file);
-            if(res){
+            if(res && db->iNodeFcb[j] != -1){
                 struct fcbBlock* fBlock;
                 fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
                 read_block(fBlock, i+4);
@@ -316,7 +327,7 @@ int sfs_read(int fd, void *buf, int n){
     int sizeOfFile = fBlock->sizeOfFile[remainder];
     int whichBlock = cursor / 4096;
     //if(cursor % BLOCKSIZE)
-    int* blockIndexes = (int*) malloc(BLOCKSIZE / 4);
+    int* blockIndexes = (int*) malloc(sizeof(int[1024]));
     read_block(blockIndexes, fBlock->indexBlock[remainder]);
     char* blockData = (char*) malloc(sizeof (BLOCKSIZE));
     read_block(blockData, blockIndexes[whichBlock]);
@@ -348,8 +359,8 @@ int sfs_append(int fd, void *buf, int n)
 
 int sfs_delete(char *filename)
 {
-    struct dirBlock* db = (struct dirBlock*) malloc(sizeof (struct dirBlock));
     for(int i = 5; i < 9; i++){
+        struct dirBlock* db = (struct dirBlock*) malloc(sizeof (struct dirBlock));
         read_block(db, i);
         for(int j = 0; j < 32; j++){
             char* res = strstr(db->directories[j], filename);
@@ -360,16 +371,28 @@ int sfs_delete(char *filename)
                     struct fcbBlock *fBlock;
                     fBlock = (struct fcbBlock *) malloc(sizeof(struct fcbBlock));
                     read_block(fBlock, i + 4);
-
-                    int *blockIndexes = (int *) malloc(BLOCKSIZE / 4);
+                    int *blockIndexes = (int *) malloc(sizeof(int[1024]));
                     printf("Index Of Block : %d\n", fBlock->indexBlock[j]);
                     read_block(blockIndexes, fBlock->indexBlock[j]);
+                    int indexOfBlockIndex = fBlock->indexBlock[j];
                     fBlock->sizeOfFile[j] = 0;
                     write_block(fBlock, i+4);
+                    free(fBlock);
                     for (int k = 0; k < 1024; k++) {
-
-                        printf("BURAYA GELIYO MU LAAA \n");
-                        if (blockIndexes[k] == -1) {
+                        if(k == 0 && blockIndexes[k] == -1){
+                            printf("First index is empty");
+                            int quotient = indexOfBlockIndex / 4096; // INDICATES WHICH bitmap BLOCK
+                            int remainder = indexOfBlockIndex % 4096; // indicates which offset of bitmap block
+                            struct bitMapBlocks* bbBlock;
+                            bbBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
+                            read_block(bbBlock, quotient);
+                            clearBit(remainder, bbBlock->bitMap);
+                            write_block(bbBlock, quotient);
+                            free(bbBlock);
+                            free(db);
+                            free(blockIndexes);
+                            return 0;
+                        }else if ( k!= 0 && blockIndexes[k] == -1) {
                             printf("ıf ıcıne GELIYO MU LAAA \n");
 
                             k = 1025; // TYPE OF BREAK OF FOR LOOP
@@ -408,14 +431,14 @@ int sfs_delete(char *filename)
                     printf("sen kirmizi sortli BURAYA GELIYO MU LAAA \n");
 
                     free(blockIndexes);
-                    free(fBlock);
+
                 }
                 free(db);
                 return (0);
             }
         }
+        free(db);
     }
-    free(db);
     printf("Error occured in sfs_open, couldn't find file.\n");
     return (-1);
     return (0); 
