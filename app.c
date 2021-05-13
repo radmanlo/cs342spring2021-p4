@@ -2,10 +2,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 #include "simplefs.h"
 
 int main(int argc, char **argv)
 {
+    clock_t start;
+    clock_t stop;
+    double elapsed;
     int ret;
     int fd1, fd2, fd;
     int i;
@@ -33,9 +37,71 @@ int main(int argc, char **argv)
     sfs_create ("file1.bin");
     sfs_create ("file2.bin");
     sfs_create ("file3.bin");
+    sfs_create ("file4.bin");
+    sfs_create ("file6.bin");
+    sfs_create ("file7.bin");
+    /*start = clock();
+    sfs_create ("file1.bin");
+    stop = clock();
+    elapsed = (double)(stop - start) * 1000.0 / CLOCKS_PER_SEC;
+    printf("Time elapsed in ms: %f\n", elapsed * 1000000);
+    start = clock();
+    sfs_create ("file2.bin");
+    stop = clock();
+    elapsed = (double)(stop - start) * 1000.0 / CLOCKS_PER_SEC;
+    printf("Time elapsed in ms: %f\n", elapsed * 1000000);
+    start = clock();
+    sfs_create ("file3.bin");
+    stop = clock();
+    elapsed = (double)(stop - start) * 1000.0 / CLOCKS_PER_SEC;
+    printf("Time elapsed in ms: %f\n", elapsed * 1000000);
+    start = clock();
+    sfs_create ("file4.bin");
+    stop = clock();
+    elapsed = (double)(stop - start) * 1000.0 / CLOCKS_PER_SEC;
+    printf("Time elapsed in ms: %f\n", elapsed * 1000000);
+    start = clock();
+    sfs_create ("file5.bin");
+    stop = clock();
+    elapsed = (double)(stop - start) * 1000.0 / CLOCKS_PER_SEC;
+    printf("Time elapsed in ms: %f\n", elapsed * 1000000);
+    start = clock();
+    sfs_create ("file6.bin");
+    stop = clock();
+    elapsed = (double)(stop - start) * 1000.0 / CLOCKS_PER_SEC;
+    printf("Time elapsed in ms: %f\n", elapsed * 1000000);*/
 
+
+    start = clock();
     fd1 = sfs_open ("file1.bin", MODE_APPEND);
+    stop = clock();
+    elapsed = (double)(stop - start) * 1000.0 / CLOCKS_PER_SEC;
+    printf("Time elapsed in ms: %f\n", elapsed * 1000000);
+    start = clock();
     fd2 = sfs_open ("file2.bin", MODE_APPEND);
+    stop = clock();
+    elapsed = (double)(stop - start) * 1000.0 / CLOCKS_PER_SEC;
+    printf("Time elapsed in ms: %f\n", elapsed * 1000000);
+    start = clock();
+    fd1 = sfs_open ("file1.bin", MODE_APPEND);
+    stop = clock();
+    elapsed = (double)(stop - start) * 1000.0 / CLOCKS_PER_SEC;
+    printf("Time elapsed in ms: %f\n", elapsed * 1000000);
+    start = clock();
+    fd2 = sfs_open ("file4.bin", MODE_APPEND);
+    stop = clock();
+    elapsed = (double)(stop - start) * 1000.0 / CLOCKS_PER_SEC;
+    printf("Time elapsed in ms: %f\n", elapsed * 1000000);
+    start = clock();
+    fd1 = sfs_open ("file5.bin", MODE_APPEND);
+    stop = clock();
+    elapsed = (double)(stop - start) * 1000.0 / CLOCKS_PER_SEC;
+    printf("Time elapsed in ms: %f\n", elapsed * 1000000);
+    start = clock();
+    //fd2 = sfs_open ("file6.bin", MODE_APPEND);
+    stop = clock();
+    elapsed = (double)(stop - start) * 1000.0 / CLOCKS_PER_SEC;
+    printf("Time elapsed in ms: %f\n", elapsed * 1000000);
     for (i = 0; i < 10000; ++i) {
         buffer[0] =   (char) 65;
         sfs_append (fd1, (void *) buffer, 1);
@@ -68,4 +134,11 @@ int main(int argc, char **argv)
     }
     sfs_close (fd);
     ret = sfs_umount();
+
+
+    /*clock_t start = clock();
+    // Execuatable code
+    clock_t stop = clock();
+    double elapsed = (double)(stop - start) * 1000.0 / CLOCKS_PER_SEC;
+    printf("Time elapsed in ms: %f", elapsed);*/
 }

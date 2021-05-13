@@ -187,13 +187,13 @@ int sfs_create(char *filename)
         struct bitMapBlocks* bBlock;
         bBlock = (struct bitMapBlocks*) malloc(sizeof (struct bitMapBlocks));
         read_block(bBlock,bitBlockIndex);
-        printf("I read here\n");
+        //printf("I read here\n");
         //clearBit(15, bBlock->bitMap);
-        printf("bitMap %d\n", bBlock->bitMap[0]);
-        printf("bitMap %d\n", bBlock->bitMap[1]);
+        //printf("bitMap %d\n", bBlock->bitMap[0]);
+        //printf("bitMap %d\n", bBlock->bitMap[1]);
         for(int i = 0 ; i < 1024; ++i){
             if(readBit(i, bBlock->bitMap) == 0){
-                printf("Bitmap found availailable at i = %d, in block index = %d\n", i, bitBlockIndex);
+                printf("\nBitmap found availailable at i = %d, in block index = %d\n", i, bitBlockIndex);
                 setBit(i, bBlock->bitMap); // Allocated for index Block
                 write_block(bBlock, bitBlockIndex);
                 struct dirBlock* dBlock;
@@ -208,7 +208,6 @@ int sfs_create(char *filename)
                             fBlock = (struct fcbBlock*) malloc(sizeof(struct  fcbBlock));
                             int fBlockIndex = dirBlockIndex + 4;
                             read_block(fBlock, fBlockIndex);
-                            printf("j %d - direction %d   -   fBlock%d\n", j, dirBlockIndex, fBlockIndex);
                             fBlock->sizeOfFile[j] = 0;
                             fBlock->used[j] = 0;
                             fBlock->indexBlock[j] = ((bitBlockIndex-1) * 32767) + i;
@@ -216,7 +215,7 @@ int sfs_create(char *filename)
                             write_block(dBlock, dirBlockIndex);
                             write_block(fBlock, fBlockIndex);
                             printf("dirBlock av inode found at %d, at %d th block of dirblock\n", j, dirBlockIndex);
-                            printf("Successfully created file\n");
+                            printf("Successfully created file\n\n");
                         int* blockIndexes = (int*) malloc(sizeof(int[1024]));
                             for(int i = 0; i < 1024; i++){
                                 blockIndexes[i] = -1;
